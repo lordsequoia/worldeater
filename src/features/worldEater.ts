@@ -1,6 +1,7 @@
 import { logger, printPlayerStatsActions } from "../helpers";
 import { usePlayerStats, PlayerStatsFeature } from "./playerStats";
 import { join } from 'path'
+import { ServerLogsFeature, useServerLogs } from "./serverLogs";
 
 export interface WorldEaterOpts {
     rootDir: string;
@@ -12,6 +13,7 @@ export type LogFn = (message: any) => void
 export class WorldEater {
     options: WorldEaterOpts;
     playerStats: PlayerStatsFeature;
+    serverLogs: ServerLogsFeature;
 
     info: LogFn;
     error: LogFn;
@@ -26,7 +28,9 @@ export class WorldEater {
         this.debug = (message: any) => logger.debug(message)
         this.warn = (message: any) => logger.warn(message)
 
+        this.serverLogs = useServerLogs(this)
         this.playerStats = usePlayerStats(this)
+
         printPlayerStatsActions(this.playerStats, this.debug)
 
         this.init()

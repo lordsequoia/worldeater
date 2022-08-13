@@ -96,3 +96,6 @@ export const useServerLogs = ({ filePath }: WorldEater) => {
 
     return {rawLogs, serverLogs, serverEvents}
 }
+
+export type UseServerLogs = typeof useServerLogs
+export type ServerLogsFeature = ReturnType<UseServerLogs>
