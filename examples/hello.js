@@ -1,4 +1,4 @@
-const {useWorldEater, logger} = require('..')
+const {useWorldEater} = require('..')
 
 async function startWorldEater() {
     const world = useWorldEater({
@@ -7,10 +7,6 @@ async function startWorldEater() {
     })
 
     await world.init()
-
-    /* world.playerStats.watch((v) => {
-        logger.info(v)
-    }) */
 
     return world
 }

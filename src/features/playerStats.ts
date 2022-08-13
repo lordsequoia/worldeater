@@ -1,17 +1,19 @@
 import { createApi, createEffect, createStore, Store, forward, createEvent } from 'effector';
 import {join} from 'path'
-import {JsonDir, loadJsonDir} from '../helpers'
+import {loadJsonDir} from '../helpers'
+import { WorldEater } from './worldEater';
+import { Difference } from '../helpers/diff';
 
 export type PlayerStatsGroup = 
-    | 'used'
-    | 'mined'
-    | 'broken'
-    | 'custom'
-    | 'killed'
-    | 'crafted'
-    | 'dropped'
-    | 'killed_by'
-    | 'picked_up'
+    | 'minecraft:used'
+    | 'minecraft:mined'
+    | 'minecraft:broken'
+    | 'minecraft:custom'
+    | 'minecraft:killed'
+    | 'minecraft:crafted'
+    | 'minecraft:dropped'
+    | 'minecraft:killed_by'
+    | 'minecraft:picked_up'
 
 export type PlayerStats = {
     [key in PlayerStatsGroup]: { [key: string]: number; };
@@ -28,24 +30,20 @@ export type PlayerStatsEntries = {[key: string]: PlayerStatsEntry}
 export type PlayerStatsStore = Store<PlayerStatsEntries>
 
 export const createPlayerStatsStore = () => {
-    const $playerStats = createStore<PlayerStatsEntries>({} as PlayerStatsEntries)
+    const $entries = createStore<PlayerStatsEntries>({} as PlayerStatsEntries)
+    const $changes = createStore<Difference[]>([] as Difference[])
+    const $length = $entries.map(v => Object.keys(v).length)
 
-    const {setPlayerStats, resetPlayerStats} = createApi($playerStats, {
-        resetPlayerStats: () => ({} as PlayerStatsEntries),
-        setPlayerStats: (state, entry: PlayerStatsEntry) => {
-            const obj = {} as PlayerStatsEntries
-            
-            obj[entry.uuid] = entry
-
-            return Object.assign(state, obj)
-        }
+    const {patch, reset} = createApi($entries, {
+        reset: () => ({} as PlayerStatsEntries),
+        patch: (state, patch: PlayerStatsEntries) => Object.assign(state, patch)
     })
 
-    return {$playerStats, setPlayerStats, resetPlayerStats}
+    return {$entries, $changes, $length, patch, reset}
 }
 
-export const usePlayerStats = ({rootDir, levelName}: {rootDir: string, levelName: string}) => {
-    const {$playerStats, setPlayerStats, resetPlayerStats} = createPlayerStatsStore()
+export const usePlayerStats = ({options: {rootDir, levelName}}: WorldEater) => {
+    const {$entries, $changes, $length, patch, reset} = createPlayerStatsStore()
 
     const loadAllStatsFx = createEffect(async (statsDir?: string) => {
         const result = await loadJsonDir<PlayerStatsFile>(statsDir || join(rootDir, levelName, 'stats'))
@@ -53,25 +51,25 @@ export const usePlayerStats = ({rootDir, levelName}: {rootDir: string, levelName
         return result
     })
 
-    const updateAllStatsFx = createEffect(async (allStats: JsonDir<PlayerStatsFile>) => {
-        for (const uuid of Object.keys(allStats)) {
-            const playerStatsEntry = Object.assign(allStats[uuid], {uuid})
-
-            setPlayerStats(playerStatsEntry)
-        }
-
-        return allStats
-    })
-
     const loadStatsDir = createEvent<string>()
     forward({from: loadStatsDir, to: loadAllStatsFx})
-    forward({from: loadAllStatsFx.doneData, to: updateAllStatsFx})
+    forward({from: loadAllStatsFx.doneData.map(v => v as PlayerStatsEntries), to: patch})
 
     const synchronizeStats = createEvent()
     synchronizeStats.watch(() => loadStatsDir(join(rootDir, levelName, 'stats')))
 
+    const feature = {
+        $entries,
+        $length,
+        $changes,
+        patch,
+        reset,
+        loadAllStatsFx,
+        loadStatsDir,
+        synchronizeStats,
+    }
 
-    return {$playerStats, setPlayerStats, loadAllStatsFx, updateAllStatsFx, resetPlayerStats, loadStatsDir, synchronizeStats}
+    return feature
 }
 
 export type PlayerStatsFeature = ReturnType<typeof usePlayerStats>

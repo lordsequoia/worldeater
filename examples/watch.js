@@ -1,13 +1,30 @@
-const {useStore} = require('..')
+const { useWorldEater } = require("..")
 
-const store = useStore({})
+const config = require('./config')
 
-store.value['foo'] = 'bar'
+async function main (app) {
+    const {info, playerStats} = app
 
-store.value['bar'] = 'foo'
+    playerStats.$length.watch((length) => info(`players in stats: ${length}`))
 
-store.value['dummy'] = {
-    foo: 'bar'
+    playerStats.setEntry.watch(({uuid, stats}, ) => {
+        const id = uuid.split('-')[0] 
+
+        for (const key of Object.keys(stats)) {
+            app.info(`[${id}] ${Object.keys(stats[key]).length} x ${key}`)
+
+            if (key === 'minecraft:custom') {
+                for (const statName of Object.keys(stats[key])) {
+                    app.info(`[${id}] (custom:${statName.replace('minecraft:', '')}) -> ${stats[key][statName]}`)
+                }
+            }
+        }
+    })
+
+    return app
 }
 
-store.value.dummy.foo = 'barz'
+const loadApp = () => useWorldEater(config.rootDir, config.levelName)
+
+main(loadApp())
+    .then(({info, options: {rootDir, levelName}}) => info(`example done: ${rootDir}/${levelName}`))
