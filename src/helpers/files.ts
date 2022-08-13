@@ -1,4 +1,4 @@
-import { createApi, createEffect, createEvent, createStore } from "effector"
+import { createEffect, createEvent, createStore } from "effector"
 import { promises, readJson } from "fs-extra"
 import {parse, join} from 'path'
 import { Tail } from "tail"
