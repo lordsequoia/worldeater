@@ -1,5 +1,6 @@
 import { logger, printPlayerStatsActions } from "../helpers";
 import { usePlayerStats, PlayerStatsFeature } from "./playerStats";
+import { join } from 'path'
 
 export interface WorldEaterOpts {
     rootDir: string;
@@ -29,6 +30,15 @@ export class WorldEater {
         printPlayerStatsActions(this.playerStats, this.debug)
 
         this.init()
+    }
+
+    filePath(path: string | string[]) {
+        return join(this.options.rootDir, Array.isArray(path) ? join(...path) : path)
+    }
+
+    levelPath(path: string | string[]) {
+        const levelFile = Array.isArray(path) ? join(...path) : path
+        return this.filePath([this.options.levelName, levelFile])
     }
 
     synchronize() {

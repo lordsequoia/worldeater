@@ -1,5 +1,7 @@
+import { createApi, createEffect, createEvent, createStore } from "effector"
 import { promises, readJson } from "fs-extra"
 import {parse, join} from 'path'
+import { Tail } from "tail"
 
 export const loadJsonFile = async <T>(filePath: string): Promise<T> => {
     const fileData = await readJson(filePath)
@@ -38,4 +40,20 @@ export const loadJsonDir = async<T>(fileDir: string, keyBy?: (v: T) => string): 
     }
 
     return results
+}
+
+export const watchFile = (filePath: string) => {
+    const addLine = createEvent<string>()
+
+    const $lines = createStore<string[]>([] as string[])
+        .on(addLine, (state, line) => [...state, line])
+
+    const tail = new Tail(filePath)
+    tail.on('line', line => addLine(line))
+
+    const stopWatching = createEffect(() => {
+        tail.unwatch()
+    })
+
+    return {$lines, addLine, stopWatching }
 }
