@@ -9,7 +9,7 @@ const startStreamsDemo = async () => {
         app.info(`[${timestamp}] ${content}`)
     })
 
-    world.playerStats.commit.watch(data => {
+    world.playerStats.commitStat.watch(data => {
         app.info(`[COMMIT] ${JSON.stringify(data, null, 2)}`)
     })
 
