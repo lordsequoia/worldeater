@@ -4,6 +4,7 @@ import {parse, join} from 'path'
 import { Tail } from "tail"
 import chokidar, { FSWatcher } from 'chokidar'
 import { splitMap } from "patronum"
+import { isMatch } from "micromatch"
 
 export const loadJsonFile = async <T>(filePath: string): Promise<T> => {
     const fileData = await readJson(filePath)
@@ -70,6 +71,10 @@ export type FileWatcherEventName =
 export const watchDir = (rootDir: string) => {
     const fileEvent = createEvent<{eventName: FileWatcherEventName, path: string, fullPath: string}>()
 
+    const matchFileEvent = (pattern: string | string[]) => fileEvent.filter({
+        fn: v => isMatch(v.path, pattern)
+    })
+
     const {fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved} = splitMap({
         source: fileEvent,
         cases: {
@@ -107,5 +112,5 @@ export const watchDir = (rootDir: string) => {
         }
     }
 
-    return {$files, fileEvent, fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved, startWatching, stopWatching}
+    return {$files, fileEvent, matchFileEvent, fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved, startWatching, stopWatching}
 }

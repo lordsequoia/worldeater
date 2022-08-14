@@ -1,5 +1,4 @@
 import { createEffect, createEvent, forward } from 'effector';
-import { isMatch } from 'micromatch';
 import {join, parse} from 'path'
 import {loadJsonDir, loadJsonFile, trackState} from '../helpers'
 import { WorldEater } from './worldEater';
@@ -58,7 +57,8 @@ export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex)
     forward({from: loadStatsByDir, to: loadAllStatsFx})
     forward({from: loadStats, to: loadStatsByDir})
 
-    const statsFileEvent = app.storage.fileEvent.filter({fn: v => isMatch(v.path, app.options.levelName + '/stats/*.json')})
+    const statsFileEvent = app.storage.matchFileEvent(app.options.levelName + '/stats/*.json')
+
     statsFileEvent.watch(({path}) => {
         loadStatsById(parse(path).name)
     })
