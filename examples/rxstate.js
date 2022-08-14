@@ -1,6 +1,6 @@
-const {useRxState} = require('..')
+const {trackState} = require('..')
 
-const {commitDifference, patchState} = useRxState({})
+const {commitDifference, patchState} = trackState({})
 
 commitDifference.watch(difference => {
     console.dir({difference})

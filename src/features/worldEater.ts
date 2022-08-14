@@ -1,4 +1,4 @@
-import { logger, printPlayerStatsActions } from "../helpers";
+import { logger, watchDir } from "../helpers";
 import { usePlayerStats, PlayerStatsFeature } from "./playerStats";
 import { join } from 'path'
 import { ServerLogsFeature, useServerLogs } from "./serverLogs";
@@ -12,6 +12,7 @@ export type LogFn = (message: any) => void
 
 export class WorldEater {
     options: WorldEaterOpts;
+    storage: ReturnType<typeof watchDir>
     playerStats: PlayerStatsFeature;
     serverLogs: ServerLogsFeature;
 
@@ -28,10 +29,9 @@ export class WorldEater {
         this.debug = (message: any) => logger.debug(message)
         this.warn = (message: any) => logger.warn(message)
 
+        this.storage = watchDir(this.options.rootDir)
         this.serverLogs = useServerLogs(options.rootDir)
-        this.playerStats = usePlayerStats(this)
-
-        printPlayerStatsActions(this.playerStats, this.debug)
+        this.playerStats = usePlayerStats(this, {})
 
         this.init()
     }
@@ -46,7 +46,7 @@ export class WorldEater {
 
     synchronize() {
         this.info(`synchronizing world eater`)
-        this.playerStats.synchronizeStats()
+        this.playerStats.loadStats()
     }
 
     init() {

@@ -2,7 +2,7 @@ import { createApi, createEffect, createEvent, createStore, forward } from "effe
 import diff from "microdiff"
 import { Difference } from "./diff"
 
-export const useRxState = <T extends Object>(initialState: T) => {
+export const trackState = <T extends Object>(initialState: T) => {
     const $state = createStore<T>(initialState)
 
     const {updateState, patchState} = createApi($state, {
@@ -39,3 +39,6 @@ export const useRxState = <T extends Object>(initialState: T) => {
 
     return {$state, $history, $versions, updateState, patchState, commitDifference}
 }
+
+// export type TrackState = typeof trackState
+// export type TrackedState<T> = ReturnType<typeof trackState<T>>

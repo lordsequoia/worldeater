@@ -1,8 +1,8 @@
-import { createApi, createEffect, createStore, Store, forward, createEvent } from 'effector';
-import {join} from 'path'
-import {loadJsonDir} from '../helpers'
+import { createEffect, createEvent, forward } from 'effector';
+import { isMatch } from 'micromatch';
+import {join, parse} from 'path'
+import {loadJsonDir, loadJsonFile, trackState} from '../helpers'
 import { WorldEater } from './worldEater';
-import { Difference } from '../helpers/diff';
 
 export type PlayerStatsGroup = 
     | 'minecraft:used'
@@ -24,49 +24,55 @@ export type PlayerStatsFile = {
     stats: Partial<PlayerStats>
 }
 
-export type PlayerStatsEntry = PlayerStatsFile & {uuid: string}
-export type PlayerStatsEntries = {[key: string]: PlayerStatsEntry}
+export type PlayerStatsIndex = {[key: string]: PlayerStatsFile}
 
-export type PlayerStatsStore = Store<PlayerStatsEntries>
+export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex) => {
+    const {commitDifference, patchState, updateState} = trackState(initialState || ({} as PlayerStatsIndex))
 
-export const createPlayerStatsStore = () => {
-    const $entries = createStore<PlayerStatsEntries>({} as PlayerStatsEntries)
-    const $changes = createStore<Difference[]>([] as Difference[])
-    const $length = $entries.map(v => Object.keys(v).length)
+    const statsDir = join(app.options.rootDir, app.options.levelName, 'stats')
 
-    const {patch, reset} = createApi($entries, {
-        reset: () => ({} as PlayerStatsEntries),
-        patch: (state, patch: PlayerStatsEntries) => Object.assign(state, patch)
+    const loadStatsFx = createEffect(async (filePath: string) => {
+        const uuid = parse(filePath).name
+        const data = await loadJsonFile<PlayerStatsFile>(filePath)
+
+      const patch = {} as PlayerStatsIndex
+      patch[uuid] = data
+      
+      return patch
     })
 
-    return {$entries, $changes, $length, patch, reset}
-}
+    const loadAllStatsFx = createEffect(async (fromDir?: string) => {
+        const result = await loadJsonDir<PlayerStatsFile>(fromDir || statsDir)
 
-export const usePlayerStats = ({options: {rootDir, levelName}}: WorldEater) => {
-    const {$entries, $changes, $length, patch, reset} = createPlayerStatsStore()
-
-    const loadAllStatsFx = createEffect(async (statsDir?: string) => {
-        const result = await loadJsonDir<PlayerStatsFile>(statsDir || join(rootDir, levelName, 'stats'))
-
-        return result
+        return result as PlayerStatsIndex
     })
 
-    const loadStatsDir = createEvent<string>()
-    forward({from: loadStatsDir, to: loadAllStatsFx})
-    forward({from: loadAllStatsFx.doneData.map(v => v as PlayerStatsEntries), to: patch})
+    const loadStatsById = createEvent<string>()
+    const loadStatsByFile = loadStatsById.map(v => join(statsDir, v + ".json"))
+    const loadStatsByDir = createEvent<string | undefined>()
+    const loadStats = createEvent<undefined>()
+    
+    forward({from: loadStatsFx.doneData, to: patchState})
+    forward({from: loadAllStatsFx.doneData, to: updateState})
+    forward({from: loadStatsByFile, to: loadStatsFx})
+    forward({from: loadStatsByDir, to: loadAllStatsFx})
+    forward({from: loadStats, to: loadStatsByDir})
 
-    const synchronizeStats = createEvent()
-    synchronizeStats.watch(() => loadStatsDir(join(rootDir, levelName, 'stats')))
+    const statsFileEvent = app.storage.fileEvent.filter({fn: v => isMatch(v.path, app.options.levelName + '/stats/*.json')})
+    statsFileEvent.watch(({path}) => {
+        loadStatsById(parse(path).name)
+    })
 
     const feature = {
-        $entries,
-        $length,
-        $changes,
-        patch,
-        reset,
+        loadStats,
+        loadStatsById,
+        loadStatsByFile,
+        loadStatsByDir,
+        loadStatsFx,
         loadAllStatsFx,
-        loadStatsDir,
-        synchronizeStats,
+        commitStat: commitDifference,
+        patchStats: patchState,
+        updateStats: updateState,
     }
 
     return feature
