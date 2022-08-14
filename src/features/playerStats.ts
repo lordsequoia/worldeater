@@ -28,8 +28,6 @@ export type PlayerStatsIndex = {[key: string]: PlayerStatsFile}
 export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex) => {
     const {commitDifference, patchState, updateState} = trackState(initialState || ({} as PlayerStatsIndex))
 
-    const statsDir = join(app.options.rootDir, app.options.levelName, 'stats')
-
     const loadStatsFx = createEffect(async (filePath: string) => {
         const uuid = parse(filePath).name
         const data = await loadJsonFile<PlayerStatsFile>(filePath)
@@ -41,13 +39,13 @@ export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex)
     })
 
     const loadAllStatsFx = createEffect(async (fromDir?: string) => {
-        const result = await loadJsonDir<PlayerStatsFile>(fromDir || statsDir)
+        const result = await loadJsonDir<PlayerStatsFile>(fromDir || join(app.options.rootDir, app.options.levelName, 'stats'))
 
         return result as PlayerStatsIndex
     })
 
     const loadStatsById = createEvent<string>()
-    const loadStatsByFile = loadStatsById.map(v => join(statsDir, v + ".json"))
+    const loadStatsByFile = loadStatsById.map(v => join(app.options.rootDir, app.options.levelName, 'stats', v + ".json"))
     const loadStatsByDir = createEvent<string | undefined>()
     const loadStats = createEvent<undefined>()
     

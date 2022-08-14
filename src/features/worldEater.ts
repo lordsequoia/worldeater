@@ -31,7 +31,7 @@ export class WorldEater {
 
         this.storage = watchDir(this.options.rootDir)
         this.serverLogs = useServerLogs(this)
-        this.playerStats = usePlayerStats(this, {})
+        this.playerStats = usePlayerStats(this)
     }
 
     filePath(path: any) {
