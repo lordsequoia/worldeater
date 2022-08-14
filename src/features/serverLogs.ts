@@ -1,6 +1,6 @@
-import { createStore, Store, Event } from "effector";
+import { createStore, Store, Event, createEvent } from "effector";
 import { watchFile } from "../helpers";
-import {join} from 'path'
+import { WorldEater } from "./worldEater";
 
 export const SERVER_LOG_REGEX = /\[(.*)\] \[(.*)\/(.*)\]: (.*)/m
 
@@ -86,10 +86,24 @@ export const createServerEvents = (addServerLog: Event<ServerLog>) => {
     return {$serverEvents, addServerEvent}
 }
 
-export const useServerLogs = (rootDir: string) => {
-    const logsFile = join(rootDir, 'logs', 'latest.log')
+export const createRawLogs = ({storage}: {storage: WorldEater['storage']}) => {
+    const addLine = createEvent<string>()
 
-    const rawLogs = watchFile(logsFile)
+    const logsFileDetected = storage.matchFileEvent('logs/latest.log').filter({fn: v => {
+        return v.eventName === 'add'
+    }})
+
+    logsFileDetected.watch(logsFile => {
+        watchFile(logsFile.fullPath).addLine.watch(line => {
+            addLine(line)
+        })
+    })
+
+    return {addLine, logsFileDetected}
+}
+
+export const useServerLogs = ({storage}: {storage: WorldEater['storage']}) => {
+    const rawLogs = createRawLogs({storage})
     const serverLogs = createServerLogs(rawLogs.addLine)
     const serverEvents = createServerEvents(serverLogs.addServerLog)
 
