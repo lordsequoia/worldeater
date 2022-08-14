@@ -36,13 +36,15 @@ export class WorldEater {
         this.init()
     }
 
-    filePath(path: string | string[]) {
-        return join(this.options.rootDir, Array.isArray(path) ? join(...path) : path)
+    filePath(path: any) {
+        const subPath = typeof path !== 'string' && Array.isArray(path) ? path.join('/') : String(path)
+        return join(this.options.rootDir, subPath)
     }
 
-    levelPath(path: string | string[]) {
-        const levelFile = Array.isArray(path) ? join(...path) : path
-        return this.filePath([this.options.levelName, levelFile])
+    levelPath(path: any) {
+        const subPath = typeof path !== 'string' && Array.isArray(path) ? path.join('/') : String(path)
+
+        return this.filePath(join(this.options.levelName, subPath))
     }
 
     synchronize() {

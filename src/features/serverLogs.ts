@@ -86,8 +86,8 @@ export const createServerEvents = (addServerLog: Event<ServerLog>) => {
     return {$serverEvents, addServerEvent}
 }
 
-export const useServerLogs = ({ filePath }: WorldEater) => {
-    const logsFile = filePath(['logs', 'latest.log'])
+export const useServerLogs = (app: WorldEater) => {
+    const logsFile = app.filePath('logs/latest.log')
 
     const rawLogs = watchFile(logsFile)
     const serverLogs = createServerLogs(rawLogs.addLine)

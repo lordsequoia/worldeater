@@ -2,14 +2,14 @@ const { useWorldEater } = require('..')
 
 const config = require('./config')
 
-const loadApp = () => useWorldEater(config.rootDir, config.levelName)
+const startStreamsDemo = async () => {
+    const world = useWorldEater(config)
 
-const startStreamsDemo = () => {
-    const app = loadApp()
-
-    app.serverLogs.addServerLog.watch(({timestamp, content}) => {
+    world.serverLogs.addServerLog.watch(({timestamp, content}) => {
         app.info(`[${timestamp}] ${content}`)
     })
+
+    await world.init()
 }
 
-startStreamsDemo()
+startStreamsDemo().then(() => console.log(`done`))
