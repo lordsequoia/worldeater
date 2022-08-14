@@ -1,9 +1,7 @@
 const { useWorldEater, WorldEater } = require('..')
 
-const config = require('./config')
-
-
 const extractStreamsDemoApi = ({
+    info,
     serverLogs: {
         serverLogs: {
             addServerLog,
@@ -11,33 +9,34 @@ const extractStreamsDemoApi = ({
         serverEvents: {
             addServerEvent,
         },
-        playerStats: {
-            commitStat,
-        }
+    },
+    playerStats: {
+        commitStat,
     }
 }) => {
-    return {addServerLog, addServerEvent, commitStat}
+    return {info, addServerLog, addServerEvent, commitStat}
 }
 
 const startStreamsDemo = async () => {
-    const world = useWorldEater(config.projectDir, config.levelName)
+    const world = useWorldEater('/home/ubuntu/.beacon/mirror', 'world')
 
     const {
+        info,
         addServerLog,
         addServerEvent,
         commitStat
     } = extractStreamsDemoApi(world)
 
     addServerLog.watch(({timestamp, content}) => {
-        app.info(`[${timestamp}] LOG --> ${content}`)
+        info(`[${timestamp}] LOG --> ${content}`)
     })
 
     addServerEvent.watch(({timestamp, eventName, eventData}) => {
-        app.info(`[${timestamp}] ${eventName} --> ${JSON.stringify(eventData, null, 2)}`)
+        info(`[${timestamp}] ${eventName} --> ${JSON.stringify(eventData, null, 2)}`)
     })
 
     commitStat.watch(data => {
-        app.info(`[COMMIT] ${JSON.stringify(data, null, 2)}`)
+        info(`[COMMIT] ${JSON.stringify(data, null, 2)}`)
     })
 
     world.init()

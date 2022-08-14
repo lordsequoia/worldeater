@@ -29,7 +29,7 @@ export class WorldEater {
         this.debug = (message: any) => logger.debug(message)
         this.warn = (message: any) => logger.warn(message)
 
-        this.storage = watchDir(this.options.rootDir)
+        this.storage = watchDir(options.rootDir)
         this.serverLogs = useServerLogs(this)
         this.playerStats = usePlayerStats(this)
     }
