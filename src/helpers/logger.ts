@@ -1,35 +1,42 @@
 import { join } from 'path'
 
-import { createLogger, format } from "winston";
-import { Console, File } from "winston/lib/winston/transports";
+import * as winston from "winston";
+import { Console, DailyRotateFile } from "winston/lib/winston/transports";
+import  'winston-daily-rotate-file';
 
-export const logger = createLogger({
+export const logger = winston.createLogger({
     transports: [
-        new Console({
-            level: 'info',
-            format: format.cli(),
-        }),
-        new Console({
-            level: 'error',
-            format: format.cli(),
-        }),
-        new File({
+        new Console({ level: 'info', format: winston.format.cli() }),
+        new Console({ level: 'error', format: winston.format.cli() }),
+        new DailyRotateFile({
             dirname: join(process.cwd(), 'logs'),
-            filename: 'debug.log',
+            filename: 'debug-%DATE%.log',
             level: 'debug',
-            format: format.simple(),
+            format: winston.format.simple(),
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d'
         }),
-        new File({
+        new DailyRotateFile({
             dirname: join(process.cwd(), 'logs'),
-            filename: 'main.log',
+            filename: 'main-%DATE%.log',
             level: 'info',
-            format: format.simple(),
+            format: winston.format.simple(),
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d'
         }),
-        new File({
+        new DailyRotateFile({
             dirname: join(process.cwd(), 'logs'),
-            filename: 'errors.log',
+            filename: 'errors-%DATE%.log',
             level: 'error',
-            format: format.simple(),
+            format: winston.format.simple(),
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: true,
+            maxSize: '20m',
+            maxFiles: '14d'
         }),
     ]
 })
