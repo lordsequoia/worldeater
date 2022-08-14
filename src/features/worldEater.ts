@@ -30,10 +30,8 @@ export class WorldEater {
         this.warn = (message: any) => logger.warn(message)
 
         this.storage = watchDir(this.options.rootDir)
-        this.serverLogs = useServerLogs(options.rootDir)
+        this.serverLogs = useServerLogs(this)
         this.playerStats = usePlayerStats(this, {})
-
-        this.init()
     }
 
     filePath(path: any) {
@@ -52,7 +50,7 @@ export class WorldEater {
 
     init() {
         this.info(`initializing world eater`)
-        
+
         this.storage.startWatching()
     }
 }
