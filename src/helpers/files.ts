@@ -2,7 +2,7 @@ import { createEffect, createEvent, createStore } from "effector"
 import { promises, readJson } from "fs-extra"
 import {parse, join} from 'path'
 import { Tail } from "tail"
-import chokidar from 'chokidar'
+import chokidar, { FSWatcher } from 'chokidar'
 import { splitMap } from "patronum"
 
 export const loadJsonFile = async <T>(filePath: string): Promise<T> => {
@@ -86,12 +86,26 @@ export const watchDir = (rootDir: string) => {
         .on(fileAdded, (files, file) => [...files, file.path])
         .on(fileRemoved, (files, file) => files.filter(x => x !== file.path))
 
+    let watcher: FSWatcher | null = null
+    let stopWatching: null | (() => void) = null
 
-    const watcher = chokidar.watch('.', {cwd: rootDir})
+    const startWatching = () => {
+        if (stopWatching !== null) {
+            stopWatching()
+        }
 
-    const stopWatching = watcher.on('all', (eventName, path) => {
-        fileEvent({eventName, path, fullPath: join(rootDir, path)})
-    })
+        watcher = chokidar.watch('.', {cwd: rootDir})
+        
+        watcher.on('all', (eventName, path) => {
+            fileEvent({eventName, path, fullPath: join(rootDir, path)})
+        })
 
-    return {$files, fileEvent, fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved, stopWatching}
+        stopWatching = () => {
+            watcher?.close()
+            watcher = null
+            stopWatching = null
+        }
+    }
+
+    return {$files, fileEvent, fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved, startWatching, stopWatching}
 }

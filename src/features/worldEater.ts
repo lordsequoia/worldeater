@@ -46,12 +46,14 @@ export class WorldEater {
 
     synchronize() {
         this.info(`synchronizing world eater`)
-        this.playerStats.loadStats()
+        
+        // this.playerStats.loadStats()
     }
 
     init() {
         this.info(`initializing world eater`)
-        this.synchronize()
+        
+        this.storage.startWatching()
     }
 }
 
