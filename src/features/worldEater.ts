@@ -28,7 +28,7 @@ export class WorldEater {
         this.debug = (message: any) => logger.debug(message)
         this.warn = (message: any) => logger.warn(message)
 
-        this.serverLogs = useServerLogs(this)
+        this.serverLogs = useServerLogs(options.rootDir)
         this.playerStats = usePlayerStats(this)
 
         printPlayerStatsActions(this.playerStats, this.debug)
@@ -37,14 +37,11 @@ export class WorldEater {
     }
 
     filePath(path: any) {
-        const subPath = typeof path !== 'string' && Array.isArray(path) ? path.join('/') : String(path)
-        return join(this.options.rootDir, subPath)
+        return join(this.options.rootDir, String(path))
     }
 
     levelPath(path: any) {
-        const subPath = typeof path !== 'string' && Array.isArray(path) ? path.join('/') : String(path)
-
-        return this.filePath(join(this.options.levelName, subPath))
+        return join(this.options.rootDir, this.options.levelName, String(path))
     }
 
     synchronize() {

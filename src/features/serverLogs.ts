@@ -1,6 +1,6 @@
 import { createStore, Store, Event } from "effector";
-import { WorldEater } from "./worldEater";
 import { watchFile } from "../helpers";
+import {join} from 'path'
 
 export const SERVER_LOG_REGEX = /\[(.*)\] \[(.*)\/(.*)\]: (.*)/m
 
@@ -86,8 +86,8 @@ export const createServerEvents = (addServerLog: Event<ServerLog>) => {
     return {$serverEvents, addServerEvent}
 }
 
-export const useServerLogs = (app: WorldEater) => {
-    const logsFile = app.filePath('logs/latest.log')
+export const useServerLogs = (rootDir: string) => {
+    const logsFile = join(rootDir, 'logs', 'latest.log')
 
     const rawLogs = watchFile(logsFile)
     const serverLogs = createServerLogs(rawLogs.addLine)
