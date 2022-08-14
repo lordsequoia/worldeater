@@ -2,7 +2,7 @@ import { createApi, createEffect, createEvent, createStore, forward } from "effe
 import diff from "microdiff"
 import { Difference } from "./diff"
 
-export const trackState = <T extends Object>(initialState: T) => {
+export const trackState = <T extends Object>(initialState: T, keepAmount?: number) => {
     const $state = createStore<T>(initialState)
 
     const {updateState, patchState} = createApi($state, {
@@ -13,7 +13,7 @@ export const trackState = <T extends Object>(initialState: T) => {
     const $history = $state.map<T[]>((state, history) => {
         const states = (history || []) as T[]
 
-        return [...states, state] as T[]
+        return [...states, state].splice((keepAmount || 2) * -1) as T[]
     })
 
     const commitDifferences = createEvent<Difference[]>()
@@ -26,8 +26,6 @@ export const trackState = <T extends Object>(initialState: T) => {
         return diff(original || {}, updated)
     })
 
-    const $versions = $history.map(history => (history || []).length)
-
     forward({from: $history, to: parseDifferencesFx})
     forward({from: parseDifferencesFx.doneData, to: commitDifferences})
 
@@ -37,7 +35,7 @@ export const trackState = <T extends Object>(initialState: T) => {
         }
     })
 
-    return {$state, $history, $versions, updateState, patchState, commitDifference}
+    return {$state, $history, updateState, patchState, commitDifference}
 }
 
 // export type TrackState = typeof trackState
