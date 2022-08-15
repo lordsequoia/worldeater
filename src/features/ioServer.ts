@@ -18,3 +18,5 @@ export const useSocketServer = (app: WorldEater) => {
 
     return {server}
 }
+
+export type SocketServerFeature = ReturnType<typeof useSocketServer>
