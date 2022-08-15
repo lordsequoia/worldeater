@@ -13,10 +13,10 @@ export const createServer = (port?: number) => {
 
     const server = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer);
 
-    server.listen(port || 3082);
+    //server.listen(port || 3082);
 
     app.listen(port || 3082, () => {
-        logger.info(`Example app listening on port ${port || 3000}!`)
+        logger.info(`Example app listening on port ${port || 3082}!`)
     })
 
     return { server, app }

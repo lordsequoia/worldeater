@@ -2,7 +2,7 @@ import { logger } from "../helpers";
 import { createClient } from "../modules/socket-io"
 
 export const useSocketClient = () => {
-    const {client} = createClient()
+    const client = createClient()
 
     client.on('connect', () => {
         client.emit('join', 'app logs')
@@ -12,6 +12,8 @@ export const useSocketClient = () => {
         });
 
     })
+
+    client.connect()
 
     return {client}
 }

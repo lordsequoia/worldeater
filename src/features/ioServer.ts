@@ -2,7 +2,7 @@ import { logger } from "../helpers";
 import { createServer } from "../modules/socket-io";
 
 export const useSocketServer = () => {
-    const {server} = createServer()
+    const {app, server} = createServer()
 
     server.on('connection', (socket) => {
         logger.info(`[IO] new client: ${socket.id}`)
@@ -16,7 +16,7 @@ export const useSocketServer = () => {
         socket.emit('noArg')
     })
 
-    return {server}
+    return {app, server}
 }
 
 export type SocketServerFeature = ReturnType<typeof useSocketServer>
