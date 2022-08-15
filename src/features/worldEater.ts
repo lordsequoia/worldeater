@@ -36,7 +36,7 @@ export class WorldEater {
 
         this.sockets = useSockets(this)
 
-        this.info.watch(message => this.sockets.server.emit('info', message))
+        this.info.watch(message => this.sockets.ioServer.emit('info', message))
 
         this.storage = watchDir(options.rootDir)
         this.serverLogs = useServerLogs(this)
