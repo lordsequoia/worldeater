@@ -1,22 +1,54 @@
+import { createServer } from "http";
+import { Server } from "socket.io";
 import { logger } from "../helpers";
-import { createServer } from "../modules/socket-io";
+import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "../modules/socket-io";
 
-export const useSocketServer = () => {
-    const {app, server} = createServer()
+export const createSocketServer = (httpServer: ReturnType<typeof createHttpServer>) => {
+    const ioServer = new Server(httpServer, { /* options */ }) as Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
-    server.on('connection', (socket) => {
-        logger.info(`[IO] new client: ${socket.id}`)
+    logger.info(`io server created`)
 
-        socket.emit('noArg')
-
-        socket.on('hello', () => {
-            logger.info(`[IO] client says hello`)
-        })
-
-        socket.emit('noArg')
+    ioServer.on('connect', (socket) => {
+        logger.info(`server received socket connection: ${socket.id}`)
     })
 
-    return {app, server}
+    ioServer.on("connection", (socket) => {
+        logger.info(`a client socket connected: ${socket.id}`)
+
+        socket.on('join', (room) => {
+            logger.info(`a client requests to join ${room}`)
+            socket.join(room)
+            socket.emit('joined', room)
+        })
+    });
+
+    ioServer.listen(httpServer)
+
+    logger.info(`io server listening`)
+
+    return ioServer
+}
+
+export const createHttpServer = (host: string, port: number) => {
+    const httpServer = createServer();
+
+    httpServer.listen(port, host, undefined, () => {
+        logger.info(`http server listening on port ${port}`)
+    });
+
+    logger.info(`http server created`)
+
+    return httpServer
+}
+
+export const useSocketServer = ({port, host}: {port?: number, host?: string}) => {
+    const HOST = host || '0.0.0.0'
+    const PORT = port || 3082
+
+    const httpServer = createHttpServer(HOST, PORT)
+    const ioServer = createSocketServer(httpServer)
+
+    return {httpServer, ioServer}
 }
 
 export type SocketServerFeature = ReturnType<typeof useSocketServer>
