@@ -1,7 +1,6 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { logger } from "../../../helpers";
-import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "../shared";
+import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData, socketsLogger as logger } from "../shared";
 
 export const createSocketServer = (httpServer: ReturnType<typeof createHttpServer>) => {
     const ioServer = new Server(httpServer, { /* options */ }) as Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;

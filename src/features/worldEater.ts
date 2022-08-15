@@ -9,6 +9,8 @@ import winston from "winston";
 export interface WorldEaterOpts {
     rootDir: string;
     levelName: string;
+    socketHost: string;
+    socketPort: number;
 }
 
 export type LogFn = (message: any) => void
@@ -19,7 +21,7 @@ export class WorldEater {
     storage: ReturnType<typeof watchDir>
     playerStats: PlayerStatsFeature;
     serverLogs: ServerLogsFeature;
-    sockets: SocketsFeature;
+    ioServer: ReturnType<SocketsFeature['createServer']>['ioServer']
 
     info: LoggerFx;
     error: LoggerFx;
@@ -34,9 +36,15 @@ export class WorldEater {
         this.debug = createEffect((message: any) => logger.debug(message))
         this.warn = createEffect((message: any) => logger.warn(message))
 
-        this.sockets = useSockets(this)
+        const {createServer} = useSockets({
+            host: options.socketHost,
+            port: options.socketPort
+        })
 
-        this.info.watch(message => this.sockets.ioServer.emit('info', message))
+        const server = createServer()
+        this.ioServer = server.ioServer
+
+        this.info.watch(message => this.ioServer.emit('info', message))
 
         this.storage = watchDir(options.rootDir)
         this.serverLogs = useServerLogs(this)
@@ -60,15 +68,20 @@ export class WorldEater {
     init() {
         logger.info(`initializing world eater`)
 
-        this.sockets.ioServer.on('connection', (socket) => {
+        this.ioServer.on('connection', (socket) => {
             logger.info(`[io:server] new socket connected: ${socket.id}`)
 
         })
 
-        this.info.watch(v => this.sockets.ioServer/*.to('app logs')*/.emit('info', v))
+        this.info.watch(v => this.ioServer/*.to('app logs')*/.emit('info', v))
 
         this.storage.startWatching()
     }
 }
 
-export const useWorldEater = (rootDir: string, levelName: string) => new WorldEater({rootDir, levelName})
+export const useWorldEater = (rootDir: string, levelName: string, socketHost?: string, socketPort?:number) => new WorldEater({
+    rootDir,
+    levelName,
+    socketHost: socketHost || '0.0.0.0',
+    socketPort: socketPort || 3082
+})

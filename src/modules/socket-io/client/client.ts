@@ -1,6 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { logger } from "../../../helpers";
-import { ClientToServerEvents, ServerToClientEvents } from "../shared/contracts";
+import { ClientToServerEvents, ServerToClientEvents, socketsLogger as logger } from "../shared";
 
 export const createSocketClient = (host: string, port: number) => {
     const connectionUrl = `http://${host}:${port}`
