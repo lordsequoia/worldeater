@@ -28,6 +28,7 @@ const startStreamsDemo = async () => {
         addServerEvent,
         commitStat
     } = extractStreamsDemoApi(world)
+    
 
     addServerLog.watch(({timestamp, content}) => {
         debug(`[${timestamp}] LOG --> ${content}`)
@@ -38,7 +39,7 @@ const startStreamsDemo = async () => {
     })
 
     commitStat.watch(data => {
-        debug(`[COMMIT] ${JSON.stringify(data, null, 2)}`)
+        debug(`[commit] ${JSON.stringify(data, null, 2)}`)
     })
 
     world.init()
