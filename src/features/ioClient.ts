@@ -5,6 +5,7 @@ export const useSocketClient = () => {
     const client = createClient()
 
     client.on('connect', () => {
+        logger.info(`client connected to server`)
         client.emit('join', 'app logs')
 
         client.on("info", (message) => {

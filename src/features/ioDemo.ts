@@ -13,8 +13,18 @@ export const createSocketDemoServer = ({port}: {port: number}) => {
 
     logger.info(`io server created`)
 
+    ioServer.on('connect', (socket) => {
+        logger.info(`server received socket connection: ${socket.id}`)
+    })
+
     ioServer.on("connection", (socket) => {
-        logger.info(`socket connected: ${socket.id}`)
+        logger.info(`a client socket connected: ${socket.id}`)
+
+        socket.on('join', (room) => {
+            logger.info(`a client requests to join ${room}`)
+            socket.join(room)
+            socket.emit('joined', room)
+        })
     });
 
     httpServer.listen(port, '0.0.0.0', undefined, () => {
@@ -31,6 +41,12 @@ export const createSocketDemoClient = ({port}: {port: number}) => {
 
     logger.info(`io client created`)
 
+    ioClient.on('connect', () => {
+        logger.info(`client connected to server on port ${port}`)
+    })
+
+    ioClient.connect()
+
     return {ioClient}
 }
 
@@ -41,11 +57,17 @@ export const useSocketDemo = (port?: number) => {
     const {ioClient} = createSocketDemoClient({port: PORT})
 
     ioClient.on('connect', () => {
-        logger.info(`io client connected`)
+        logger.info(`connecting client logic`)
 
         ioClient.send('hello world')
 
         ioClient.emit('join', 'app logs')
+
+        ioClient.on('joined', (room) => {
+            logger.info(`i joined ${room}`)
+            ioClient.emit('hello')
+        })
+        
     })
 
     ioClient.connect()
