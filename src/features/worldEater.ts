@@ -21,7 +21,9 @@ export class WorldEater {
     storage: ReturnType<typeof watchDir>
     playerStats: PlayerStatsFeature;
     serverLogs: ServerLogsFeature;
-    ioServer: ReturnType<SocketsFeature['createServer']>['ioServer']
+    http: ReturnType<SocketsFeature['createServer']>['httpServer'];
+    server: ReturnType<SocketsFeature['createServer']>['httpApp'];
+    ioServer: ReturnType<SocketsFeature['createServer']>['ioServer'];
 
     info: LoggerFx;
     error: LoggerFx;
@@ -42,7 +44,9 @@ export class WorldEater {
         })
 
         const server = createServer()
+        this.http = server.httpServer
         this.ioServer = server.ioServer
+        this.server = server.httpApp
 
         this.info.watch(message => this.ioServer.emit('info', message))
 
