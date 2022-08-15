@@ -52,21 +52,24 @@ export class WorldEater {
     }
 
     synchronize() {
-        this.info(`synchronizing world eater`)
+        logger.info(`synchronizing world eater`)
         
         // this.playerStats.loadStats()
     }
 
     init() {
-        this.info(`initializing world eater`)
+        logger.info(`initializing world eater`)
 
         this.sockets.server.on('connection', (socket) => {
-            this.info(`[io:server] new socket connected: ${socket.id}`)
+            logger.info(`[io:server] new socket connected: ${socket.id}`)
 
             socket.on('join', (room) => {
+                logger.info(`socket ${socket.id} joining ${room}`)
                 socket.join(room)
             })
         })
+
+        this.info.watch(v => this.sockets.server.to('app logs').emit('info', v))
 
         this.storage.startWatching()
     }

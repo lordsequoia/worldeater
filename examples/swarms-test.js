@@ -44,4 +44,4 @@ const startStreamsDemo = async () => {
     world.init()
 }
 
-startStreamsDemo().then(() => console.log(`done`))
+startStreamsDemo().then(() => console.log(`done!`))

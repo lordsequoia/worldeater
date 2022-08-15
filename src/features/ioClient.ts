@@ -4,11 +4,14 @@ import { createClient } from "../modules/socket-io"
 export const useSocketClient = () => {
     const {client} = createClient()
 
-    client.emit('join', 'app logs')
+    client.on('connect', () => {
+        client.emit('join', 'app logs')
 
-    client.on("info", (message) => {
-        logger.info(`[IO] received app logs info: ${message}`)
-    });
+        client.on("info", (message) => {
+            logger.info(`[IO] received app logs info: ${message}`)
+        });
+
+    })
 
     return {client}
 }

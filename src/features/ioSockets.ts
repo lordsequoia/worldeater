@@ -3,8 +3,10 @@ import { useSocketServer } from "./ioServer";
 import { WorldEater } from "./worldEater";
 
 export const useSockets = (app: WorldEater) => {
-    const {server} = useSocketServer(app)
+    const {server} = useSocketServer()
     const {client} = useSocketClient()
+
+    app.info(`sockets initialized`)
 
     return {server, client}
 }
