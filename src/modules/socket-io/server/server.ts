@@ -1,23 +1,54 @@
+import { createServer } from "http";
 import { Server } from "socket.io";
-import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "../shared";
-import express, { Request, Response } from 'express';
 import { logger } from "../../../helpers";
+import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "../shared";
 
-export const createServer = (port?: number) => {
-    const app = express();
-    const httpServer = require('http').Server(app);
+export const createSocketServer = (httpServer: ReturnType<typeof createHttpServer>) => {
+    const ioServer = new Server(httpServer, { /* options */ }) as Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
-    app.get('/', (_req: Request, res: Response) => {
-        res.json({ hello: 'world' })
-    });
+    logger.info(`io server created`)
 
-    const server = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer);
-
-    //server.listen(port || 3082);
-
-    app.listen(port || 3082, () => {
-        logger.info(`Example app listening on port ${port || 3082}!`)
+    ioServer.on('connect', (socket) => {
+        logger.info(`server received socket connection: ${socket.id}`)
     })
 
-    return { server, app }
+    ioServer.on("connection", (socket) => {
+        logger.info(`a client socket connected: ${socket.id}`)
+
+        socket.on('join', (room) => {
+            logger.info(`a client requests to join ${room}`)
+            socket.join(room)
+            socket.emit('joined', room)
+        })
+    });
+
+    ioServer.listen(httpServer)
+
+    logger.info(`io server listening`)
+
+    return ioServer
 }
+
+export const createHttpServer = (host: string, port: number) => {
+    const httpServer = createServer();
+
+    httpServer.listen(port, host, undefined, () => {
+        logger.info(`http server listening on port ${port}`)
+    });
+
+    logger.info(`http server created`)
+
+    return httpServer
+}
+
+export const useSocketServer = ({port, host}: {port?: number, host?: string}) => {
+    const HOST = host || '0.0.0.0'
+    const PORT = port || 3082
+
+    const httpServer = createHttpServer(HOST, PORT)
+    const ioServer = createSocketServer(httpServer)
+
+    return {httpServer, ioServer, serverOpts: {host: HOST, port: PORT}}
+}
+
+export type SocketServerFeature = ReturnType<typeof useSocketServer>

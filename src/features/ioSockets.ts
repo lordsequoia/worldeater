@@ -1,14 +1,25 @@
-import { useSocketClient } from "./ioClient";
-import { useSocketServer } from "./ioServer";
-import { WorldEater } from "./worldEater";
+import { useSocketClient, useSocketServer } from "../modules/socket-io";
 
-export const useSockets = (app: WorldEater) => {
-    const server = useSocketServer({port: 3082})
-    const client = useSocketClient({port: 3082, host: '127.0.0.1'})
+export type SocketOpts = {
+    port: number,
+    host: string
+}
 
-    app.info(`sockets initialized`)
+export const useSockets = (options?: Partial<SocketOpts>) => {
 
-    return Object.assign({}, server, client)
+    const makeOpts = (opts?: Partial<SocketOpts>) => 
+        Object.assign({}, options || {}, opts || {})
+
+    const createServer = (opts?: Partial<SocketOpts>) => 
+        useSocketServer(makeOpts(opts))
+
+    const createClient = (opts?: Partial<SocketOpts>) => 
+        useSocketClient(makeOpts(opts))
+
+    return {
+        createClient,
+        createServer,
+    }
 }
 
 export type SocketsFeature = ReturnType<typeof useSockets>

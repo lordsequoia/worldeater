@@ -1,21 +1,28 @@
-import { useSocketServer } from "./ioServer";
-import { useSocketClient } from "./ioClient";
 import { logger } from "../helpers";
+import { useSockets } from "./ioSockets";
 
-export const useSocketDemo = (port?: number) => {
-    const PORT = port || 3082
+export const useSocketDemo = (port?: number, host?: string) => {
+    const {createServer, createClient} = useSockets({port, host})
 
-    const {ioServer, httpServer} = useSocketServer({port: PORT})
-    const {ioClient} = useSocketClient({port: PORT})
+    const startServer = () => {
+        const {ioServer} = createServer({host: '0.0.0.0'})
+        
+        setInterval(() => {
+            ioServer.emit('info', new Date())
+        }, 5000)
 
-    ioClient.on('info', (message) => {
-        logger.info(`received message ${message}`)
-    })
+        return ioServer
+    }
 
+    const startClient = () => {
+        const {ioClient} = createClient()
 
-    setInterval(() => {
-        ioServer.emit('info', new Date())
-    }, 5000)
+        ioClient.on('info', (message) => {
+            logger.info(`received message ${message}`)
+        })
 
-    return {ioServer, ioClient, httpServer}
+        return ioClient
+    }
+
+    return {startClient, startServer}
 }

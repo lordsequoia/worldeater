@@ -1,7 +1,5 @@
 export * from './playerStats'
 export * from './serverLogs'
 export * from './worldEater'
-export * from './ioClient'
-export * from './ioServer'
 export * from './ioSockets'
 export * from './ioDemo'
