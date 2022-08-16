@@ -5,6 +5,7 @@ import { ServerLogsFeature, useServerLogs } from "./serverLogs";
 import { SocketsFeature, useSockets } from "./ioSockets";
 import { createEffect, Effect } from "effector";
 import winston from "winston";
+import { MemberListFeature, useMemberList } from "./membersList";
 
 export interface WorldEaterOpts {
     rootDir: string;
@@ -21,6 +22,7 @@ export class WorldEater {
     storage: ReturnType<typeof watchDir>
     playerStats: PlayerStatsFeature;
     serverLogs: ServerLogsFeature;
+    members: MemberListFeature['members$'];
     http: ReturnType<SocketsFeature['createServer']>['httpServer'];
     server: ReturnType<SocketsFeature['createServer']>['httpApp'];
     ioServer: ReturnType<SocketsFeature['createServer']>['ioServer'];
@@ -50,9 +52,15 @@ export class WorldEater {
 
         this.info.watch(message => this.ioServer.emit('info', message))
 
-        this.storage = watchDir(options.rootDir)
+        const storage = watchDir(options.rootDir)
+        this.storage = storage
+
+        const {members$} = useMemberList(this)
+        this.members = members$
+
         this.serverLogs = useServerLogs(this)
         this.playerStats = usePlayerStats(this)
+        
     }
 
     filePath(path: any) {

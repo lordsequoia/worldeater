@@ -12,6 +12,16 @@ export const loadJsonFile = async <T>(filePath: string): Promise<T> => {
     return Object.assign({}, fileData) as T
 }
 
+export const loadJsonArrayFile = async <T>(filePath: string): Promise<T[]> => {
+    const fileData = await readJson(filePath)
+
+    if (fileData === undefined) {
+        return [] as T[]
+    }
+
+    return fileData as T[]
+}
+
 export const listFiles = async (fileDir: string) => {
     const files = await promises.readdir(fileDir)
     

@@ -10,6 +10,10 @@ export const createSocketServer = (httpServer: ReturnType<typeof createHttpServe
 
     ioServer.on('connect', (socket) => {
         logger.info(`server received socket connection: ${socket.id}`)
+
+        socket.on('disconnect', () => {
+            logger.info('user disconnected: ' + socket.id);
+        });
     })
 
     ioServer.on("connection", (socket) => {
@@ -39,17 +43,17 @@ export const createHttpServer = (host: string, port: number) => {
 
     logger.info(`http server created`)
 
-    return {httpServer, httpApp}
+    return { httpServer, httpApp }
 }
 
-export const useSocketServer = ({port, host}: {port?: number, host?: string}) => {
+export const useSocketServer = ({ port, host }: { port?: number, host?: string }) => {
     const HOST = host || '0.0.0.0'
     const PORT = port || 3082
 
-    const {httpServer, httpApp} = createHttpServer(HOST, PORT)
+    const { httpServer, httpApp } = createHttpServer(HOST, PORT)
     const ioServer = createSocketServer(httpServer)
 
-    return {httpServer, httpApp, ioServer, serverOpts: {host: HOST, port: PORT}}
+    return { httpServer, httpApp, ioServer, serverOpts: { host: HOST, port: PORT } }
 }
 
 export type SocketServerFeature = ReturnType<typeof useSocketServer>

@@ -1,29 +1,31 @@
 import { makeLogger, useWorldEater, WorldEaterOpts } from "../index";
 import {join} from 'path'
 
-export function launch ({rootDir, levelName, socketHost, socketPort}: WorldEaterOpts) {
-    const logger = makeLogger('app')
+const logger = makeLogger('app')
 
-    logger.info(`launching!`)
+const setup = ({rootDir, levelName, socketHost, socketPort}: WorldEaterOpts) => useWorldEater(
+    rootDir,
+    levelName,
+    socketHost,
+    socketPort
+)
 
-    const app = useWorldEater(
-        rootDir,
-        levelName,
-        socketHost,
-        socketPort
-    )
+export function launch (options: WorldEaterOpts) {
+    logger.info(`launching app: ${options.rootDir}`)
+
+    const app = setup(options)
 
     logger.info(`app launched: ${app.options.rootDir}!`)
 
     const webroot = join(process.cwd(), 'public')
-    
+
     app.server.get('/', (_req, res) => {
         res.sendFile(join(webroot, 'index.html'))
     })
 
     app.server.get('/status', (_req, res) => {
-        res.json({hello: rootDir})
+        res.json({hello: options.rootDir})
     })
 
-    return {logger, app}
+    return {logger, app, webroot}
 }
