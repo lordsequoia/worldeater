@@ -27,5 +27,11 @@ export function launch (options: WorldEaterOpts) {
         res.json({hello: options.rootDir})
     })
 
+    app.server.get('/stats', (_req, res) => {
+        res.json({stats: app.playerStats.$stats.getState()})
+    })
+
+    app.init()
+
     return {logger, app, webroot}
 }

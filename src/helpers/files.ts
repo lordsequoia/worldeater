@@ -5,14 +5,21 @@ import { Tail } from "tail"
 import chokidar, { FSWatcher } from 'chokidar'
 import { splitMap } from "patronum"
 import { isMatch } from "micromatch"
+import { makeLogger } from "./logger"
+
+const logger = makeLogger('files')
 
 export const loadJsonFile = async <T>(filePath: string): Promise<T> => {
+    logger.info(`loading json file: ${filePath}`)
+
     const fileData = await readJson(filePath)
 
     return Object.assign({}, fileData) as T
 }
 
 export const loadJsonArrayFile = async <T>(filePath: string): Promise<T[]> => {
+    logger.info(`loading json array file: ${filePath}`)
+
     const fileData = await readJson(filePath)
 
     if (fileData === undefined) {
@@ -41,6 +48,8 @@ export const listJsonFiles = async (fileDir: string) => {
 export type JsonDir<T> = {[key: string]: T}
 
 export const loadJsonDir = async<T>(fileDir: string, keyBy?: (v: T) => string): Promise<JsonDir<T>> => {
+    logger.info(`loading json dir: ${fileDir}`)
+
     const {jsonFiles} = await listJsonFiles(fileDir)
 
     const results = {} as JsonDir<T>
@@ -56,6 +65,8 @@ export const loadJsonDir = async<T>(fileDir: string, keyBy?: (v: T) => string): 
 }
 
 export const watchFile = (filePath: string) => {
+    logger.info(`watching file: ${filePath}`)
+
     const addLine = createEvent<string>()
 
     const $lines = createStore<string[]>([] as string[])
@@ -79,6 +90,8 @@ export type FileWatcherEventName =
     | 'unlinkDir'
 
 export const watchDir = (rootDir: string) => {
+    logger.info(`watching dir: ${rootDir}`)
+
     const fileEvent = createEvent<{eventName: FileWatcherEventName, path: string, fullPath: string}>()
 
     const matchFileEvent = (pattern: string | string[]) => fileEvent.filter({
@@ -105,6 +118,8 @@ export const watchDir = (rootDir: string) => {
     let stopWatching: null | (() => void) = null
 
     const startWatching = () => {
+        logger.info(`starting watcher: ${rootDir}`)
+
         if (stopWatching !== null) {
             stopWatching()
         }
@@ -116,6 +131,8 @@ export const watchDir = (rootDir: string) => {
         })
 
         stopWatching = () => {
+            logger.info(`stopping watcher: ${rootDir}`)
+
             watcher?.close()
             watcher = null
             stopWatching = null

@@ -26,7 +26,7 @@ export type PlayerStatsFile = {
 export type PlayerStatsIndex = {[key: string]: PlayerStatsFile}
 
 export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex) => {
-    const {commitDifference, patchState, updateState} = trackState(initialState || ({} as PlayerStatsIndex))
+    const {$state: $stats, commitDifference, patchState, updateState} = trackState(initialState || ({} as PlayerStatsIndex))
 
     const loadStatsFx = createEffect(async (filePath: string) => {
         const uuid = parse(filePath).name
@@ -62,6 +62,7 @@ export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex)
     })
 
     const feature = {
+        $stats,
         loadStats,
         loadStatsById,
         loadStatsByFile,
