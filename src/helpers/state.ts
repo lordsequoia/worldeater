@@ -1,6 +1,32 @@
 import { createApi, createEffect, createEvent, createStore, forward } from "effector"
 import diff from "microdiff"
-import { Difference } from "./diff"
+
+export interface DifferenceCreate {
+	type: "CREATE";
+	path: (string | number)[];
+	value: any;
+}
+export interface DifferenceRemove {
+	type: "REMOVE";
+	path: (string | number)[];
+	oldValue: any;
+}
+export interface DifferenceChange {
+	type: "CHANGE";
+	path: (string | number)[];
+	value: any;
+	oldValue: any;
+}
+
+export type Difference = 
+    | DifferenceCreate
+    | DifferenceRemove
+    | DifferenceChange
+
+export type DiffState<T> = {
+    oldState: T
+    differences: Difference[]
+}
 
 export const trackState = <T extends Object>(initialState: T, keepAmount?: number) => {
     const $state = createStore<T>(initialState)
@@ -38,5 +64,5 @@ export const trackState = <T extends Object>(initialState: T, keepAmount?: numbe
     return {$state, $history, updateState, patchState, commitDifference}
 }
 
-// export type TrackState = typeof trackState
-// export type TrackedState<T> = ReturnType<typeof trackState<T>>
+export type TrackState = typeof trackState
+export type TrackedState = ReturnType<typeof trackState>

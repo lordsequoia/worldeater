@@ -8,37 +8,31 @@ import { LogtailTransport } from '@logtail/winston';
 
 export const logtail = new Logtail(process.env['LOGTAIL_TOKEN'] || '');
 
-export const makeLogger = (name: string) => {
+export const makeLogger = (service: string) => {
     const result = winston.createLogger({
+        defaultMeta: {service},
         transports: [
             new Console({ level: 'info', format: winston.format.cli() }),
             new Console({ level: 'error', format: winston.format.cli() }),
             new DailyRotateFile({
-                dirname: join(process.cwd(), 'logs', name, 'debug'),
-                filename: '%DATE%.log',
+                dirname: join(process.cwd(), 'logs'),
+                filename: 'debug-%DATE%.log',
                 level: 'debug',
                 format: winston.format.simple(),
                 datePattern: 'YYYY-MM-DD',
-                zippedArchive: true,
-                maxSize: '20m',
-                maxFiles: '14d'
             }),
             new DailyRotateFile({
-                dirname: join(process.cwd(), 'logs', name, 'info'),
-                filename: '%DATE%.log',
+                dirname: join(process.cwd(), 'logs'),
+                filename: 'main-%DATE%.log',
                 level: 'info',
                 format: winston.format.simple(),
                 datePattern: 'YYYY-MM-DD',
-                zippedArchive: true,
-                maxSize: '20m',
-                maxFiles: '14d'
             }),
             new File({
-                dirname: join(process.cwd(), 'logs', name),
+                dirname: join(process.cwd(), 'logs'),
                 filename: 'errors.log',
                 level: 'error',
                 format: winston.format.simple(),
-                zippedArchive: true,
             }),
             new LogtailTransport(logtail, {
                 level: 'info',
