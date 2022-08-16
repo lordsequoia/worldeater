@@ -130,6 +130,8 @@ export const watchDir = (rootDir: string) => {
             fileEvent({eventName, path, fullPath: join(rootDir, path)})
         })
 
+        fileEvent.watch(v => logger.info(`[file-watcher] ${v.eventName}: ${v.path}`))
+
         stopWatching = () => {
             logger.info(`stopping watcher: ${rootDir}`)
 

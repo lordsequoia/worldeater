@@ -31,21 +31,11 @@ export function launch (options: WorldEaterOpts) {
         res.sendFile(join(webroot, 'index.html'))
     })
 
-    app.server.get('/status', (_req, res) => {
-        res.json({hello: options.rootDir})
-    })
-
-    app.server.get('/stats', (_req, res) => {
-        res.json({stats: app.playerStats.$stats.getState()})
-    })
-
-    app.server.get('/server-logs', (_req, res) => {
-        res.json({logs: app.serverLogs.serverLogs.$serverLogs.getState()})
-    })
-
-    app.server.get('/server-events', (_req, res) => {
-        res.json({events: app.serverLogs.serverEvents.$serverEvents.getState()})
-    })
+    app.server.get('/status', (_req, res) => res.json({hello: options.rootDir}))
+    app.server.get('/stats', (_req, res) => res.json({stats: app.playerStats.$stats.getState()}))
+    app.server.get('/server-logs', (_req, res) => res.json({logs: app.serverLogs.serverLogs.$serverLogs.getState()}))
+    app.server.get('/server-events', (_req, res) => res.json({events: app.serverLogs.serverEvents.$serverEvents.getState()}))
+    app.server.get('/files', (_req, res) => res.json({files: app.storage.$files.getState()}))
 
     app.init()
 
