@@ -58,8 +58,8 @@ export class WorldEater {
         const {members$} = useMemberList(this)
         this.members = members$
 
-        this.serverLogs = useServerLogs(this)
-        this.playerStats = usePlayerStats(this)
+        this.serverLogs = useServerLogs({storage})
+        this.playerStats = usePlayerStats({storage, options})
         
     }
 

@@ -19,6 +19,14 @@ export function launch (options: WorldEaterOpts) {
 
     const webroot = join(process.cwd(), 'public')
 
+    app.playerStats.commitStat.watch(v => {
+        logger.info(`stat changed: ${v.path.join(':')}: ${v.type}`)
+    })
+
+    app.serverLogs.serverEvents.addServerEvent.watch(v => {
+        logger.info(`[${v.eventName}] ${v.timestamp}: ${v.eventData.join(' |--| ')}`)
+    })
+
     app.server.get('/', (_req, res) => {
         res.sendFile(join(webroot, 'index.html'))
     })
@@ -29,6 +37,14 @@ export function launch (options: WorldEaterOpts) {
 
     app.server.get('/stats', (_req, res) => {
         res.json({stats: app.playerStats.$stats.getState()})
+    })
+
+    app.server.get('/server-logs', (_req, res) => {
+        res.json({logs: app.serverLogs.serverLogs.$serverLogs.getState()})
+    })
+
+    app.server.get('/server-events', (_req, res) => {
+        res.json({events: app.serverLogs.serverEvents.$serverEvents.getState()})
     })
 
     app.init()

@@ -1,5 +1,5 @@
 import { createStore, Store, Event, createEvent } from "effector";
-import { watchFile } from "../helpers";
+import { logger, watchFile } from "../helpers";
 import { WorldEater } from "./worldEater";
 
 export const SERVER_LOG_REGEX = /\[(.*)\] \[(.*)\/(.*)\]: (.*)/m
@@ -94,6 +94,8 @@ export const createRawLogs = ({storage}: {storage: WorldEater['storage']}) => {
     }})
 
     logsFileDetected.watch(logsFile => {
+        logger.info(`logs file detected: ${logsFile.path}`)
+        
         watchFile(logsFile.fullPath).addLine.watch(line => {
             addLine(line)
         })

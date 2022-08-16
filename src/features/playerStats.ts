@@ -1,6 +1,6 @@
 import { createEffect, createEvent, forward } from 'effector';
 import {join, parse} from 'path'
-import {loadJsonDir, loadJsonFile, trackState} from '../helpers'
+import {loadJsonDir, loadJsonFile, logger, trackState} from '../helpers'
 import { WorldEater } from './worldEater';
 
 export type PlayerStatsGroup = 
@@ -25,11 +25,14 @@ export type PlayerStatsFile = {
 
 export type PlayerStatsIndex = {[key: string]: PlayerStatsFile}
 
-export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex) => {
+export const usePlayerStats = (app: {storage: WorldEater['storage'], options: WorldEater['options']}, initialState?: PlayerStatsIndex) => {
     const {$state: $stats, commitDifference, patchState, updateState} = trackState(initialState || ({} as PlayerStatsIndex))
 
     const loadStatsFx = createEffect(async (filePath: string) => {
         const uuid = parse(filePath).name
+
+        logger.info(`loading stats for ${uuid}`)
+
         const data = await loadJsonFile<PlayerStatsFile>(filePath)
 
       const patch = {} as PlayerStatsIndex
@@ -55,10 +58,13 @@ export const usePlayerStats = (app: WorldEater, initialState?: PlayerStatsIndex)
     forward({from: loadStatsByDir, to: loadAllStatsFx})
     forward({from: loadStats, to: loadStatsByDir})
 
-    const statsFileEvent = app.storage.matchFileEvent(app.options.levelName + '/stats/*.json')
+    const statsFileEvent = app.storage.matchFileEvent('**/stats/*.json')
 
-    statsFileEvent.watch(({path}) => {
-        loadStatsById(parse(path).name)
+    statsFileEvent.watch(({eventName, path}) => logger.info(`stats file ${eventName}: ${parse(path).name}`))
+
+    forward({
+        from: statsFileEvent.map(({fullPath}) => fullPath),
+        to: loadStatsFx
     })
 
     const feature = {
