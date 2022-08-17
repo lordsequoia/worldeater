@@ -6,6 +6,7 @@ import { SocketsFeature, useSockets } from "./ioSockets";
 import { createEffect, Effect } from "effector";
 import winston from "winston";
 import { MemberListFeature, useMemberList } from "./membersList";
+import { SocketsManager, useSocketsManager } from "./ioManager";
 
 export interface WorldEaterOpts {
     rootDir: string;
@@ -19,7 +20,8 @@ export type LoggerFx = Effect<any, winston.Logger, Error>
 
 export class WorldEater {
     options: WorldEaterOpts;
-    storage: ReturnType<typeof watchDir>
+    storage: ReturnType<typeof watchDir>;
+    sockets: SocketsManager;
     playerStats: PlayerStatsFeature;
     serverLogs: ServerLogsFeature;
     members: MemberListFeature['members$'];
@@ -55,6 +57,8 @@ export class WorldEater {
         const storage = watchDir(options.rootDir)
         this.storage = storage
 
+        this.sockets = useSocketsManager(server.ioServer)
+
         const {members$} = useMemberList(this)
         this.members = members$
 
@@ -79,11 +83,6 @@ export class WorldEater {
 
     init() {
         logger.info(`initializing world eater`)
-
-        this.ioServer.on('connection', (socket) => {
-            logger.info(`[io:server] new socket connected: ${socket.id}`)
-
-        })
 
         this.info.watch(v => this.ioServer/*.to('app logs')*/.emit('info', v))
 

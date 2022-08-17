@@ -6,7 +6,7 @@ import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketDa
 export const createSocketServer = (httpServer: ReturnType<typeof createHttpServer>['httpServer']) => {
     const ioServer = new Server(httpServer, { /* options */ }) as Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
 
-    logger.info(`io server created`)
+    logger.debug(`io server created`)
 
     ioServer.on('connect', (socket) => {
         logger.info(`server received socket connection: ${socket.id}`)
@@ -15,16 +15,6 @@ export const createSocketServer = (httpServer: ReturnType<typeof createHttpServe
             logger.info('user disconnected: ' + socket.id);
         });
     })
-
-    ioServer.on("connection", (socket) => {
-        logger.info(`a client socket connected: ${socket.id}`)
-
-        socket.on('join', (room) => {
-            logger.info(`a client requests to join ${room}`)
-            socket.join(room)
-            socket.emit('joined', room)
-        })
-    });
 
     ioServer.listen(httpServer)
 

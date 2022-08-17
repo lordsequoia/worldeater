@@ -89,10 +89,20 @@ export type FileWatcherEventName =
     | 'unlink'
     | 'unlinkDir'
 
-export const watchDir = (rootDir: string) => {
-    logger.info(`watching dir: ${rootDir}`)
+export type FileWatcherEvent = {
+    eventName: FileWatcherEventName,
+    path: string,
+    fullPath: string
+}
 
-    const fileEvent = createEvent<{eventName: FileWatcherEventName, path: string, fullPath: string}>()
+export const watchDir = (rootDir: string, exclude?: string | string[]) => {
+    const excluded = exclude || [
+        'libraries/*',
+    ]
+
+    logger.info(`watching dir: ${rootDir}, exclude: ${JSON.stringify(excluded, null, 2)}`)
+
+    const fileEvent = createEvent<FileWatcherEvent>()
 
     const matchFileEvent = (pattern: string | string[]) => fileEvent.filter({
         fn: v => isMatch(v.path, pattern)
@@ -127,6 +137,8 @@ export const watchDir = (rootDir: string) => {
         watcher = chokidar.watch('.', {cwd: rootDir})
         
         watcher.on('all', (eventName, path) => {
+            if (isMatch(path, excluded)) return
+
             fileEvent({eventName, path, fullPath: join(rootDir, path)})
         })
 
@@ -141,5 +153,27 @@ export const watchDir = (rootDir: string) => {
         }
     }
 
-    return {$files, fileEvent, matchFileEvent, fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved, startWatching, stopWatching}
+    const when = ({eventNames, patterns}: {eventNames?: FileWatcherEventName | FileWatcherEventName[] | '*', patterns?: string | string[] | '*'}) => {
+        const filterByEventNames = ({eventName}: FileWatcherEvent) => {
+            if (eventNames === '*' || typeof eventNames === 'undefined') return true
+
+            if (typeof eventName === 'string') {
+                return eventName === eventNames
+            }
+
+            return eventNames.includes(eventName)
+        }
+
+        const filterByPatterns = ({path}: FileWatcherEvent) => {
+            if (patterns === '*' || typeof patterns === 'undefined') return true
+
+            return isMatch(path, patterns)
+        }
+
+        return fileEvent
+            .filter({fn: filterByPatterns})
+            .filter({fn: filterByEventNames})
+    }
+
+    return {$files, fileEvent, matchFileEvent, fileAdded, fileChanged, fileRemoved, directoryAdded, directoryRemoved, startWatching, stopWatching, when}
 }

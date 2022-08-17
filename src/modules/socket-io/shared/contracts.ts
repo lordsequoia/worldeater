@@ -1,14 +1,17 @@
 export interface ServerToClientEvents {
     info: (message: any) => void;
-    noArg: () => void;
-    basicEmit: (a: number, b: string, c: Buffer) => void;
     withAck: (d: string, callback: (e: number) => void) => void;
-    joined: (room: string) => void;
+    userJoined: (user: string, room: string) => void;
+    userLeft: (user: string, room: string) => void;
+    chatMessage: (topic: string, user: string, message: string) => void;
 }
 
 export interface ClientToServerEvents {
-    hello: () => void;
+    hello: (who: string) => void;
     join: (room: string) => void;
+    leave: (room: string) => void;
+    chat: (room: string, message: string) => void,
+    rcon: (command: string) => void;
 }
 
 export interface InterServerEvents {
