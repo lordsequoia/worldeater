@@ -97,7 +97,8 @@ export type FileWatcherEvent = {
 
 export const watchDir = (rootDir: string, exclude?: string | string[]) => {
     const excluded = exclude || [
-        'libraries/*',
+        'libraries*',
+        'libraries/**/*',
     ]
 
     logger.info(`watching dir: ${rootDir}, exclude: ${JSON.stringify(excluded, null, 2)}`)
